@@ -66,19 +66,18 @@
     </style>
 </head>
 <body>
-    <!-- 主界面 -->
-    <div id="dashboard" class="dashboard"></div>
-
-    <!-- 创建班级弹窗 -->
-    <div id="createModal" class="modal">
-        <div class="modal-content">
-            <h2>创建新班级</h2>
-            <input type="text" id="className" placeholder="班级名称">
-            <button onclick="createClass()">创建</button>
-            <button onclick="closeModal()">取消</button>
-        </div>
+<!-- 修改后的创建班级弹窗 -->
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <h2>创建新班级</h2>
+        <input type="text" id="className" placeholder="班级名称" required>
+        <button class="primary-btn" onclick="createClass()">创建</button>
+        <button class="secondary-btn" onclick="closeModal()">取消</button>
     </div>
+</div>
 
+<!-- 主界面新增创建按钮 -->
+<button onclick="showCreateModal()" style="margin:20px">+ 创建新班级</button>
     <!-- 班级管理界面 -->
     <div id="classView" style="display:none;">
         <button onclick="backToDashboard()">← 返回看板</button>
@@ -134,32 +133,53 @@
     </div>
 
     <script>
-        // 数据结构
-        let classData = JSON.parse(localStorage.getItem('classData')) || {};
-        
-        // 核心功能实现
-        function renderDashboard() {
-            const dashboard = document.getElementById('dashboard');
-            dashboard.innerHTML = Object.keys(classData).map(id => `
-                <div class="class-folder" onclick="openClass('${id}')">
-                    <h3>📁 ${classData[id].name}</h3>
-                    <p>学生数: ${classData[id].students.length}</p>
-                </div>
-            `).join('') + '<div class="class-folder" onclick="showCreateModal()">+ 新建班级</div>';
-        }
+      // 初始化数据存储
+let classData = JSON.parse(localStorage.getItem('classData')) || {};
 
-        function createClass() {
-            const id = Date.now().toString();
-            classData[id] = {
-                name: document.getElementById('className').value,
-                students: [],
-                rules: [],
-                rewards: []
-            };
-            localStorage.setItem('classData', JSON.stringify(classData));
-            closeModal();
-            renderDashboard();
-        }
+// 创建班级函数（修正版）
+function createClass() {
+    const className = document.getElementById('className').value;
+    if (!className) {
+        alert('请输入班级名称');
+        return;
+    }
+    
+    const id = Date.now().toString();
+    classData[id] = {
+        name: className,
+        students: [],
+        rules: [],
+        rewards: []
+    };
+    
+    // 保存数据（修正语法错误）
+    localStorage.setItem('classData', JSON.stringify(classData));
+    
+    // 关闭弹窗并刷新界面
+    closeModal();
+    renderDashboard();
+}
+
+// 确保这些函数存在
+function closeModal() {
+    document.getElementById('createModal').style.display = 'none';
+}
+
+function showCreateModal() {
+    document.getElementById('createModal').style.display = 'flex';
+    document.getElementById('className').value = ''; // 清空输入框
+}
+
+// 班级看板渲染函数
+function renderDashboard() {
+    const dashboard = document.getElementById('dashboard');
+    dashboard.innerHTML = Object.keys(classData).map(id => `
+        <div class="class-folder" onclick="openClass('${id}')">
+            <h3>📁 ${classData[id].name}</h3>
+            <p>学生数: ${classData[id].students.length}</p>
+        </div>
+    `).join('');
+}
 
         function importStudents() {
             const currentClass = getCurrentClass();
