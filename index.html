@@ -64,18 +64,131 @@
     </div>
 
     <script>
-        // 初始化数据存储
-        let appData = JSON.parse(localStorage.getItem('classData')) || {
-            className: '三年二班',
-            students: [],
-            pointRules: [],
-            assignments: [],
-            attendance: {}
-        };
+       // 数据保存函数
+function saveData() {
+    localStorage.setItem('classData', JSON.stringify(appData));
+    loadAllData();
+}
 
-        // 核心功能实现...
-        // 以下为完整JavaScript代码，需全部复制
-        // （因篇幅限制，完整代码请见下一步骤）
+// 加载所有数据
+function loadAllData() {
+    // 加载班级信息
+    document.getElementById('className').value = appData.className;
+
+    // 加载学生列表
+    let studentsHTML = '';
+    appData.students.forEach((student, index) => {
+        studentsHTML += `
+        <div class="student-card">
+            <img src="${student.avatar || 'https://via.placeholder.com/60'}" 
+                 class="avatar" 
+                 alt="${student.name}的头像">
+            <div style="flex-grow:1">
+                <h3>${student.number}号 ${student.name}</h3>
+                <p>当前积分：${student.points || 0}</p>
+                <button class="secondary-btn" 
+                        onclick="adjustPoints(${index}, 1)">+1</button>
+                <button class="secondary-btn" 
+                        onclick="adjustPoints(${index}, -1)">-1</button>
+                <button class="red-btn" 
+                        onclick="deleteStudent(${index})">删除</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('studentsContainer').innerHTML = studentsHTML;
+
+    // 加载积分规则
+    let rulesHTML = '<h3>当前规则：</h3>';
+    appData.pointRules.forEach(rule => {
+        rulesHTML += `
+        <div style="margin:5px; padding:5px; background:#eee">
+            ${rule.type === 'reward' ? '🎉' : '⚠️'} 
+            ${rule.name}：${rule.points}分
+        </div>`;
+    });
+    document.getElementById('pointsDisplay').innerHTML = rulesHTML;
+
+    // 加载作业列表
+    let assignmentsHTML = '';
+    appData.assignments.forEach((assn, index) => {
+        const deadline = new Date(assn.deadline);
+        const now = new Date();
+        const status = deadline < now ? '🟥 已逾期' : '🟩 进行中';
+        
+        assignmentsHTML += `
+        <div style="margin:10px 0; padding:10px; border-left:4px solid ${status.includes('逾期') ? 'red' : 'green'}">
+            <b>${assn.name}</b> - 截止时间：${deadline.toLocaleString()}
+            <br>状态：${status}
+        </div>`;
+    });
+    document.getElementById('assignmentsList').innerHTML = assignmentsHTML;
+}
+
+// 学生管理功能
+function addStudent() {
+    const name = document.getElementById('newName').value;
+    const number = document.getElementById('newNumber').value;
+    const avatar = document.getElementById('newAvatar').value;
+    
+    if(name && number) {
+        appData.students.push({
+            name,
+            number,
+            avatar,
+            points: 0
+        });
+        saveData();
+        document.getElementById('newName').value = '';
+        document.getElementById('newNumber').value = '';
+        document.getElementById('newAvatar').value = '';
+    }
+}
+
+function deleteStudent(index) {
+    if(confirm('确定要删除该学生吗？')) {
+        appData.students.splice(index, 1);
+        saveData();
+    }
+}
+
+// 积分管理功能
+function adjustPoints(index, delta) {
+    appData.students[index].points += delta;
+    saveData();
+}
+
+function addRule() {
+    const type = document.getElementById('ruleType').value;
+    const name = document.getElementById('ruleName').value;
+    const points = parseInt(document.getElementById('rulePoints').value);
+    
+    if(name && !isNaN(points)) {
+        appData.pointRules.push({ type, name, points });
+        saveData();
+        document.getElementById('ruleName').value = '';
+        document.getElementById('rulePoints').value = '';
+    }
+}
+
+// 作业管理功能
+function createAssignment() {
+    const name = document.getElementById('assignmentName').value;
+    const deadline = document.getElementById('assignmentDeadline').value;
+    
+    if(name && deadline) {
+        appData.assignments.push({
+            name,
+            deadline,
+            submissions: {}
+        });
+        saveData();
+        document.getElementById('assignmentName').value = '';
+        document.getElementById('assignmentDeadline').value = '';
+    }
+}
+
+// 初始化加载
+document.addEventListener('DOMContentLoaded', loadAllData);
     </script>
 </body>
 </html>
