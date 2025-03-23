@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>班级管理系统</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 20px auto; }
+        .student { border: 2px solid #4CAF50; padding: 15px; margin: 10px; border-radius: 10px; }
+        button { background: #4CAF50; color: white; border: none; padding: 8px 15px; margin: 5px; }
+        #newStudent { background: #f0f0f0; padding: 20px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <h1>📚 班级管理系统</h1>
+    
+    <div id="students"></div>
+
+    <div id="newStudent">
+        <h3>添加新学生</h3>
+        <input type="text" id="name" placeholder="姓名">
+        <input type="number" id="number" placeholder="座号">
+        <button onclick="addStudent()">添加</button>
+    </div>
+
+    <script>
+        // 加載保存的數據
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        
+        // 顯示學生名單
+        function showStudents() {
+            let html = '';
+            students.forEach((student, index) => {
+                html += `
+                <div class="student">
+                    <h3>${student.number}号 ${student.name}</h3>
+                    <p>积分：<span id="points${index}">${student.points || 0}</span></p>
+                    <button onclick="changePoint(${index}, 1)">+1</button>
+                    <button onclick="changePoint(${index}, -1)">-1</button>
+                    <button onclick="deleteStudent(${index})" style="background:#ff4444">删除</button>
+                </div>
+                `;
+            });
+            document.getElementById('students').innerHTML = html;
+        }
+
+        // 積分修改功能
+        function changePoint(index, value) {
+            students[index].points = (students[index].points || 0) + value;
+            saveData();
+            showStudents();
+        }
+
+        // 添加新學生
+        function addStudent() {
+            const name = document.getElementById('name').value;
+            const number = document.getElementById('number').value;
+            if(name && number) {
+                students.push({ name, number, points: 0 });
+                saveData();
+                showStudents();
+                document.getElementById('name').value = '';
+                document.getElementById('number').value = '';
+            }
+        }
+
+        // 删除學生
+        function deleteStudent(index) {
+            if(confirm('确定要删除吗？')) {
+                students.splice(index, 1);
+                saveData();
+                showStudents();
+            }
+        }
+
+        // 保存到浏览器存储
+        function saveData() {
+            localStorage.setItem('students', JSON.stringify(students));
+        }
+
+        // 启动时显示
+        showStudents();
+    </script>
+</body>
+</html>
